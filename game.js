@@ -13,8 +13,8 @@ const background = {
     sy: 0,
     width: 275,
     height: 204,
-    dx: 0,
-    dy: canvas.height - 204,
+    x: 0,
+    y: canvas.height - 204,
 
     draw() {
         context.fillStyle = "#70c5ce"
@@ -24,7 +24,7 @@ const background = {
             sprites,
             background.sx, background.sy,
             background.width, background.height,
-            background.dx, background.dy,
+            background.x, background.y,
             background.width, background.height,
         );
         
@@ -32,7 +32,7 @@ const background = {
             sprites,
             background.sx, background.sy,
             background.width, background.height,
-            (background.dx + background.width), background.dy,
+            (background.x + background.width), background.y,
             background.width, background.height,
         );
     },
@@ -44,15 +44,15 @@ function createFloor() {
         sy: 610,
         width: 224,
         height: 112,
-        dx: 0,
-        dy: canvas.height - 112,
+        x: 0,
+        y: canvas.height - 112,
 
         update() {
             const floorMotion = 1;
             const repeatOn = floor.width / 2;
-            const movement = floor.dx - floorMotion;
+            const movement = floor.x - floorMotion;
 
-            floor.dx = movement % repeatOn;
+            floor.x = movement % repeatOn;
         },
 
         draw() {
@@ -60,7 +60,7 @@ function createFloor() {
                 sprites,
                 floor.sx, floor.sy,
                 floor.width, floor.height,
-                floor.dx, floor.dy,
+                floor.x, floor.y,
                 floor.width, floor.height,
             );
 
@@ -68,7 +68,7 @@ function createFloor() {
                 sprites,
                 floor.sx, floor.sy,
                 floor.width, floor.height,
-                (floor.dx + floor.width), floor.dy,
+                (floor.x + floor.width), floor.y,
                 floor.width, floor.height,
             );
         },
@@ -77,10 +77,10 @@ function createFloor() {
 };
 
 function hasCollision(flappyBird, floor) {
-    const flappyBirdDY = flappyBird.dy + flappyBird.height;
-    const floorDY = floor.dy;
+    const flappyBiry = flappyBird.y + flappyBird.height;
+    const floory = floor.y;
 
-    if (flappyBirdDY >= floorDY) {
+    if (flappyBiry >= floory) {
         return true;
     }
     return false;
@@ -92,8 +92,8 @@ function createFlappyBird() {
         sy: 0,
         width: 33,
         height: 24,
-        dx: 10, 
-        dy: 50,
+        x: 10, 
+        y: 50,
         jump: 4.6,
         gravity: 0.25,
         velocity: 0,
@@ -113,7 +113,7 @@ function createFlappyBird() {
             }
             
             flappyBird.velocity = flappyBird.velocity + flappyBird.gravity;
-            flappyBird.dy = flappyBird.dy + flappyBird.velocity;
+            flappyBird.y = flappyBird.y + flappyBird.velocity;
         },
 
         movements: [
@@ -146,7 +146,7 @@ function createFlappyBird() {
                 sprites,
                 sx, sy,
                 flappyBird.width, flappyBird.height,
-                flappyBird.dx, flappyBird.dy,
+                flappyBird.x, flappyBird.y,
                 flappyBird.width, flappyBird.height,
             );
         },
@@ -154,21 +154,21 @@ function createFlappyBird() {
     return flappyBird;
 };
 
-const messageGetReady = {
+const messageGetReay = {
     sx: 134,
     sy: 0,
     width: 174,
     height: 152,
-    dx: (canvas.width / 2) - 174 / 2,
-    dy: 50,
+    x: (canvas.width / 2) - 174 / 2,
+    y: 50,
 
     draw() {
         context.drawImage(
             sprites,
-            messageGetReady.sx, messageGetReady.sy,
-            messageGetReady.width, messageGetReady.height,
-            messageGetReady.dx, messageGetReady.dy,
-            messageGetReady.width, messageGetReady.height,
+            messageGetReay.sx, messageGetReay.sy,
+            messageGetReay.width, messageGetReay.height,
+            messageGetReay.x, messageGetReay.y,
+            messageGetReay.width, messageGetReay.height,
         );
     },
 };
@@ -184,18 +184,114 @@ function changeScreen(newScreen) {
     }
 };
 
+function createPipes() {
+    const pipes = {
+        width: 52,
+        height: 400,
+        floor: {
+            sx: 0,
+            sy: 169,
+        },
+        heaven: {
+            sx: 52,
+            sy: 169,
+        },
+        space: 80,
+
+        draw() {
+            pipes.pairs.forEach(function(pair) {
+                const randomY = pair.y;
+                const spacingBetweenPipes = 90;
+  
+                const pipeHeavenX = pair.x;
+                const pipeHeavenY = randomY; 
+        
+                context.drawImage(
+                    sprites, 
+                    pipes.heaven.sx, pipes.heaven.sy,
+                    pipes.width, pipes.height,
+                    pipeHeavenX, pipeHeavenY,
+                    pipes.width, pipes.height,
+                )
+  
+                const pipeFloorX = pair.x;
+                const pipeFloorY = pipes.height + spacingBetweenPipes + randomY; 
+                context.drawImage(
+                    sprites, 
+                    pipes.floor.sx, pipes.floor.sy,
+                    pipes.width, pipes.height,
+                    pipeFloorX, pipeFloorY,
+                    pipes.width, pipes.height,
+                )
+        
+                pair.pipeHeaven = {
+                    x: pipeHeavenX,
+                    y: pipes.height + pipeHeavenY
+                }
+                
+                pair.pipeFloor = {
+                    x: pipeFloorX,
+                    y: pipeFloorY
+                }
+            })
+        },
+
+        hasCollisionWithFlappyBird(pair) {
+            const headFlappy = global.flappyBird.y;
+            const footFlappy = global.flappyBird.y + global.flappyBird.height;
+    
+            if(global.flappyBird.x >= pair.x) {
+                if(headFlappy <= pair.pipeHeaven.y) {
+                    return true;
+                }
+    
+                if(footFlappy >= pair.pipeFloor.y) {
+                    return true;
+                }
+            }
+            return false;
+        },
+
+        pairs: [],
+      
+        update() {
+            const passedOneHundredFrames = frames % 100 === 0;
+            if(passedOneHundredFrames) {
+                pipes.pairs.push({
+                    x: canvas.width,
+                    y: -150 * (Math.random() + 1),
+                });
+            }
+
+            pipes.pairs.forEach(function(pair) {
+                pair.x = pair.x - 2;
+  
+                if(pipes.hasCollisionWithFlappyBird(pair)) {
+                    changeScreen(Screens.START);
+                }
+  
+                if(pair.x + pipes.width <= 0) {
+                    pipes.pairs.shift();
+                }
+            });
+        }
+    }
+    return pipes;
+}
+
 const Screens = {
     START: {
         initialize() {
             global.flappyBird = createFlappyBird();
             global.floor = createFloor();
+            global.pipes = createPipes();
         },
 
         draw() {
             background.draw();
-            global.floor.draw();
             global.flappyBird.draw();
-            messageGetReady.draw();
+            global.floor.draw();
+            messageGetReay.draw();
         },
 
         click() {
@@ -210,6 +306,7 @@ const Screens = {
     GAME: {
         draw() {
             background.draw();
+            global.pipes.draw();
             global.floor.draw();
             global.flappyBird.draw();
         },
@@ -219,6 +316,8 @@ const Screens = {
         },
 
         update() {
+            global.pipes.update();
+            global.floor.update();
             global.flappyBird.update();
         },
     },
